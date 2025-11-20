@@ -35,7 +35,16 @@ def make_favorite(n):
 app.layout = dmc.MantineProvider(
     forceColorScheme="light",
     children=dmc.Container([
-        dmc.Title("Jim's Aviation Weather Data", order=1, mb=20),
+        dmc.BackgroundImage([
+            dmc.Title("Jim's Aviation Weather Data", order=1, mb=20),
+            dmc.Text("Your go-to METAR and TAF checker", mt="md"),
+            ],
+            src="/assets/dot.jpg",
+            h=150,
+            p="lg",
+            c="white",
+            mb="lg"
+        ),
 
         dmc.Group([
             dmc.Textarea(
