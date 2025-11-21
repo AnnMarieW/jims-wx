@@ -1,4 +1,3 @@
-
 import dash_mantine_components as dmc
 import requests
 from datetime import datetime
@@ -32,14 +31,13 @@ def process_data(data):
 
         clouds_str = " ".join(cloud_layers) if cloud_layers else ""
 
-
         metar = item.get("rawOb", "")
         taf = item.get("rawTaf", "")
         # # Remove airport code
         # metar = metar[:6] + metar[10:]
         # taf = taf[:4] + taf[9:]
         taf = taf.replace(" FM", "  \n      FM")
-        raw_wx= metar + "  \n" + taf
+        raw_wx = metar + "  \n" + taf
 
         # Remove state and country  from name
         name = item.get("name", "")
@@ -47,19 +45,21 @@ def process_data(data):
         state = name[-6:-4]
         name = name[:-8]
 
-        processed_data.append({
-            "state": state,
-            "icaoId": item.get("icaoId", ""),
-            "name": name,
-            "wdir": str(item.get("wdir", "")),
-            "wspd": str(item.get("wspd", "")) + "KT",
-            "wgst": item.get("wgst", ""),
-            "visib": item.get("visib", ""),
-            "cover": item.get("cover", ""),
-            "clouds": clouds_str,
-            "rawOb": raw_wx,
-            "rawTaf": item.get("rawTaf", "")
-        })
+        processed_data.append(
+            {
+                "state": state,
+                "icaoId": item.get("icaoId", ""),
+                "name": name,
+                "wdir": str(item.get("wdir", "")),
+                "wspd": str(item.get("wspd", "")) + "KT",
+                "wgst": item.get("wgst", ""),
+                "visib": item.get("visib", ""),
+                "cover": item.get("cover", ""),
+                "clouds": clouds_str,
+                "rawOb": raw_wx,
+                "rawTaf": item.get("rawTaf", ""),
+            }
+        )
     return processed_data
 
 
@@ -71,16 +71,16 @@ def fetch_data(airport_codes):
 
     # clean codes and put in a list
     airport_codes = airport_codes.upper()
-    codes = re.findall(r'\w+', airport_codes)
+    codes = re.findall(r"\w+", airport_codes)
 
     # allows user to enter 3 char airport codes and 2 char states.
     # ie converts bfi to KBFI and wa to @WA
     codes_fixed = []
     for c in codes:
         if len(c) == 2:
-            c= "@"+ c
+            c = "@" + c
         if len(c) == 3 and not c.startswith("@"):
-            c= "K" + c
+            c = "K" + c
         codes_fixed.append(c)
 
     # TODO verify codes are valid
@@ -89,32 +89,32 @@ def fetch_data(airport_codes):
 
     # Fetch data from Aviation Weather API
     url = "https://aviationweather.gov/api/data/metar"
-    params = {
-        "ids": ids_param,
-        "format": "json",
-        "taf" : "true"
-    }
-    headers = {
-        "User-Agent": "DashWeatherApp/1.0"    }
+    params = {"ids": ids_param, "format": "json", "taf": "true"}
+    headers = {"User-Agent": "DashWeatherApp/1.0"}
 
     try:
         response = requests.get(url, params=params, headers=headers, timeout=10)
 
         if response.status_code == 204:
-            return [], dmc.Alert("No data available for the specified airport(s)", color="yellow"), False
+            return (
+                [],
+                dmc.Alert(
+                    "No data available for the specified airport(s)", color="yellow"
+                ),
+                False,
+            )
 
         response.raise_for_status()
         data = response.json()
-     #   data = response.text
+        #   data = response.text
         if not data:
             return [], dmc.Alert("No weather data found", color="yellow"), False
-
 
         row_data = process_data(data)
 
         success_msg = dmc.Alert(
             f"Successfully fetched WX for {len(row_data)} station(s). Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
-            color="green"
+            color="green",
         )
 
         return row_data, success_msg
