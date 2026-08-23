@@ -5,6 +5,7 @@ import dash_ag_grid as dag
 
 from fetch_data import fetch_data
 
+
 app = dash.Dash()
 
 
@@ -53,9 +54,10 @@ app.layout = dmc.MantineProvider(
                         id="airport-input",
                         label="Airport or State Code(s)",
                         placeholder="e.g., wa avq KTUS",
-                        value="az",
+
                         style={"flex": 1},
                         autosize=True,
+                        persistence=True,
                     ),
                     dmc.Button("Fetch WX Data", id="fetch-button", mt=25, size="sm"),
                     dmc.Button("Favorites", id="btn-modal-favorites", size="sm", mt=25),

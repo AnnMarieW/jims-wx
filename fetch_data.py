@@ -1,10 +1,40 @@
 import dash_mantine_components as dmc
 import requests
 from datetime import datetime
-import re
+import re, json, gzip
+from collections import defaultdict
+
+# get state_airports when app starts
+def get_state_airports():
+    headers = {"User-Agent": "DashWeatherApp/2.0"}
+    response = requests.get(
+    "https://aviationweather.gov/data/cache/stations.cache.json.gz",
+        headers=headers,
+        timeout=30,
+    )
+
+    stations = json.loads(
+        gzip.decompress(response.content)
+    )
+
+    st_airports = defaultdict(list)
+
+    for station in stations:
+        if station.get("country") == "US":
+            state = station.get("state")
+            icao = station.get("icaoId")
+
+            if state and icao:
+                st_airports[state].append(icao)
+
+    return  dict(st_airports)
+
+state_airports = get_state_airports()
+
 
 
 def process_data(data):
+
     # Process the fetched weather data
     processed_data = []
 
@@ -33,9 +63,6 @@ def process_data(data):
 
         metar = item.get("rawOb", "")
         taf = item.get("rawTaf", "")
-        # # Remove airport code
-        # metar = metar[:6] + metar[10:]
-        # taf = taf[:4] + taf[9:]
         taf = taf.replace(" FM", "  \n      FM")
         raw_wx = metar + "  \n" + taf
 
@@ -74,14 +101,17 @@ def fetch_data(airport_codes):
     codes = re.findall(r"\w+", airport_codes)
 
     # allows user to enter 3 char airport codes and 2 char states.
-    # ie converts bfi to KBFI and wa to @WA
+    # ie converts bfi to KBFI
     codes_fixed = []
     for c in codes:
         if len(c) == 2:
-            c = "@" + c
-        if len(c) == 3 and not c.startswith("@"):
+            c = state_airports.get(c,"")
+            codes_fixed.extend(c)
+        if len(c) == 3:
             c = "K" + c
-        codes_fixed.append(c)
+            codes_fixed.append(c)
+        if len(c) == 4:
+            codes_fixed.append(c)
 
     # TODO verify codes are valid
 
@@ -89,8 +119,9 @@ def fetch_data(airport_codes):
 
     # Fetch data from Aviation Weather API
     url = "https://aviationweather.gov/api/data/metar"
+
     params = {"ids": ids_param, "format": "json", "taf": "true"}
-    headers = {"User-Agent": "DashWeatherApp/1.0"}
+    headers = {"User-Agent": "DashWeatherApp/2.0"}
 
     try:
         response = requests.get(url, params=params, headers=headers, timeout=10)
@@ -99,16 +130,15 @@ def fetch_data(airport_codes):
             return (
                 [],
                 dmc.Alert(
-                    "No data available for the specified airport(s)", color="yellow"
-                ),
-                False,
+                    "No data available", color="yellow"
+                )
             )
 
         response.raise_for_status()
         data = response.json()
         #   data = response.text
         if not data:
-            return [], dmc.Alert("No weather data found", color="yellow"), False
+            return [], dmc.Alert("No weather data found", color="yellow")
 
         row_data = process_data(data)
 
@@ -120,5 +150,5 @@ def fetch_data(airport_codes):
         return row_data, success_msg
 
     except requests.exceptions.RequestException as e:
-        error_msg = dmc.Alert(f"Error fetching data: {str(e)}", color="red")
+        error_msg = dmc.Alert([f"Error fetching data: {str(e)}", dmc.Text("Check for invalid codes")], color="red")
         return [], error_msg
