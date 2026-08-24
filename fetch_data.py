@@ -4,7 +4,7 @@ from datetime import datetime
 import re, json, gzip
 from collections import defaultdict
 
-# get state_airports when app starts
+# create a list of airports by state when app starts
 def get_state_airports():
     headers = {"User-Agent": "DashWeatherApp/2.0"}
     response = requests.get(
@@ -17,19 +17,26 @@ def get_state_airports():
         gzip.decompress(response.content)
     )
 
+    stations = [station for station in stations if station.get("country") == "US" and station.get("icaoId") and station.get("siteType") != []]
+
     st_airports = defaultdict(list)
 
     for station in stations:
-        if station.get("country") == "US":
-            state = station.get("state")
-            icao = station.get("icaoId")
+        state = station.get("state")
+        icao = station.get("icaoId")
 
-            if state and icao:
-                st_airports[state].append(icao)
+        if state and icao:
+            st_airports[state].append(icao)
 
-    return  dict(st_airports)
+    return  dict(st_airports), stations
 
-state_airports = get_state_airports()
+state_airports, us_stations_data = get_state_airports()
+#print(us_stations_data)
+
+for i in us_stations_data:
+    if i["icaoId"] == "KK24":
+        print(i)
+
 
 
 
@@ -77,9 +84,9 @@ def process_data(data):
                 "state": state,
                 "icaoId": item.get("icaoId", ""),
                 "name": name,
-                "wdir": str(item.get("wdir", "")),
-                "wspd": str(item.get("wspd", "")) + "KT",
-                "wgst": item.get("wgst", ""),
+                "wdir": item.get("wdir"),
+                "wspd": item.get("wspd"),
+                "wgst": item.get("wgst"),
                 "visib": item.get("visib", ""),
                 "cover": item.get("cover", ""),
                 "clouds": clouds_str,

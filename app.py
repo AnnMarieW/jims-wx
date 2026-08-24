@@ -3,11 +3,9 @@ from dash import html, Input, Output, State, callback, ALL, ctx
 import dash_mantine_components as dmc
 import dash_ag_grid as dag
 
-from fetch_data import fetch_data
-
+from fetch_data import fetch_data, us_stations_data
 
 app = dash.Dash()
-
 
 def make_favorite(n):
     return dmc.Group(
@@ -31,6 +29,16 @@ def make_favorite(n):
         align="flex-start",
         mb=20,
     )
+
+def make_seach():
+    return dmc.Box([
+        dmc.Select(
+            id="search-value",
+            searchable=True,
+            data=[{"value": s["icaoId"], "label": f"{s['icaoId']} {s['state']} {s['site']}"} for s in us_stations_data],
+        ),
+        dmc.Box(id="search-results")
+    ])
 
 
 app.layout = dmc.MantineProvider(
@@ -59,16 +67,24 @@ app.layout = dmc.MantineProvider(
                         autosize=True,
                         persistence=True,
                     ),
-                    dmc.Button("Fetch WX Data", id="fetch-button", mt=25, size="sm"),
+                    dmc.Button("Fetch WX", id="fetch-button", mt=25, size="sm"),
                     dmc.Button("Favorites", id="btn-modal-favorites", size="sm", mt=25),
+                    dmc.Button("Search", id="btn-search", size="sm", mt=25),
                 ],
                 align="flex-start",
                 mb=20,
             ),
+
             dmc.Modal(
                 title="Favorite Groups",
                 id="modal-favorites",
                 children=[make_favorite(i) for i in range(6)],
+                size="75%",
+            ),
+            dmc.Modal(
+                title="Search",
+                id="modal-search",
+                children=make_seach(),
                 size="75%",
             ),
             dmc.Box(
@@ -100,9 +116,18 @@ app.layout = dmc.MantineProvider(
                                     "paddingTop": 10,
                                 },
                             },
-                            {"field": "wdir", "headerName": "Dir", "width": 80},
-                            {"field": "wspd", "headerName": "Speed", "width": 95},
-                            {"field": "wgst", "headerName": "Gusts", "width": 95},
+                            {
+                                "field": "wdir", "headerName": "Dir", "width": 80,
+
+                            },
+                            {
+                                "field": "wspd", "headerName": "Speed", "width": 95,
+                                "valueFormatter": {"function": " (params.value ? params.value + 'KT' :'')"},
+                            },
+                            {
+                                "field": "wgst", "headerName": "Gusts", "width": 95,
+                                "valueFormatter": {"function": " (params.value ? params.value + 'KT' :'')"},
+                            },
                             {"field": "visib", "headerName": "Vis", "width": 80},
                             {"field": "clouds", "headerName": "clouds", "width": 200},
                         ],
@@ -143,6 +168,28 @@ def fetch_weather_data(_, airport_codes):
 def modal_demo(nc1, nc2, opened):
     return not opened
 
+@callback(
+    Output("modal-search", "opened"),
+    Input("btn-search", "n_clicks"),
+    State("modal-search", "opened"),
+    prevent_initial_call=True,
+
+)
+def modal_search(_, opened):
+    return not opened
+
+@callback(
+    Output("search-results", "children"),
+    Input("search-value", "value"),
+    prevent_initial_call=True,
+    optional=True
+)
+def get_search_results(value):
+    if value:
+        wx_data, msg = fetch_data(value)
+        print(wx_data)
+        return dmc.Box([dmc.Textarea(wx_data[0].get('rawOb', "")), msg])
+    return []
 
 @callback(
     Output("airport-input", "value"),
