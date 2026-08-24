@@ -89,7 +89,7 @@ app.layout = dmc.MantineProvider(
             ),
             dmc.Box(
                 [
-                    html.Div(id="status-message", style={"marginBottom": "10px"}),
+                    dmc.Box(id="status-message", mb="lg"),
                     dag.AgGrid(
                         id="weather-grid",
                         columnDefs=[
@@ -110,6 +110,7 @@ app.layout = dmc.MantineProvider(
                                 "headerName": "METAR & TAF",
                                 "width": 600,
                                 "autoHeight": True,
+                                "sortable": False,
                                 "cellStyle": {
                                     "whiteSpace": "pre",
                                     "lineHeight": "1.5",
@@ -188,7 +189,7 @@ def get_search_results(value):
     if value:
         wx_data, msg = fetch_data(value)
         print(wx_data)
-        return dmc.Box([dmc.Textarea(wx_data[0].get('rawOb', "")), msg])
+        return dmc.Box([dmc.Textarea(wx_data[0].get('rawOb', ""), autosize=True, mb="md"), msg])
     return []
 
 @callback(

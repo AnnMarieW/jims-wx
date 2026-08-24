@@ -84,7 +84,7 @@ def process_data(data):
                 "state": state,
                 "icaoId": item.get("icaoId", ""),
                 "name": name,
-                "wdir": item.get("wdir"),
+                "wdir": str(item.get("wdir", "")),
                 "wspd": item.get("wspd"),
                 "wgst": item.get("wgst"),
                 "visib": item.get("visib", ""),
