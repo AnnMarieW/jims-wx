@@ -31,13 +31,6 @@ def get_state_airports():
     return  dict(st_airports), stations
 
 state_airports, us_stations_data = get_state_airports()
-#print(us_stations_data)
-
-for i in us_stations_data:
-    if i["icaoId"] == "KK24":
-        print(i)
-
-
 
 
 def process_data(data):
