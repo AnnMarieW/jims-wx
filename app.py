@@ -1,11 +1,12 @@
 import dash
-from dash import html, Input, Output, State, callback, ALL, ctx
+from dash import html, dcc, Input, Output, State, callback, ALL, ctx
 import dash_mantine_components as dmc
 import dash_ag_grid as dag
 
 from fetch_data import fetch_data, us_stations_data
 
 app = dash.Dash()
+app.title = "Jim's Aviation Weather Data"
 
 def make_favorite(n):
     return dmc.Group(
@@ -87,9 +88,22 @@ app.layout = dmc.MantineProvider(
                 children=make_seach(),
                 size="75%",
             ),
+
             dmc.Box(
                 [
-                    dmc.Box(id="status-message", mb="lg"),
+                    dmc.Group([
+                        dmc.Box(id="status-message", flex=1),
+                        dmc.NumberInput(
+                            label="Auto update time",
+                            id="auto-update-time",
+                            suffix=" minutes",
+                            value=5,
+                            min=0.5,
+                            w=180,
+                            mt=0,
+                            persistence=True
+                        ),
+                    ], mb="md" ),
                     dag.AgGrid(
                         id="weather-grid",
                         columnDefs=[
@@ -108,7 +122,7 @@ app.layout = dmc.MantineProvider(
                             {
                                 "field": "rawOb",
                                 "headerName": "METAR & TAF",
-                                "width": 600,
+                                "width": 700,
                                 "autoHeight": True,
                                 "sortable": False,
                                 "cellStyle": {
@@ -130,27 +144,44 @@ app.layout = dmc.MantineProvider(
                                 "valueFormatter": {"function": " (params.value ? params.value + 'KT' :'')"},
                             },
                             {"field": "visib", "headerName": "Vis", "width": 80},
-                            {"field": "clouds", "headerName": "clouds", "width": 200},
+                            {"field": "clouds", "headerName": "Clouds", "width": 200},
                         ],
                         defaultColDef={"filter": True},
                         rowData=[],
                         style={"height": 800},
+                        persistence=True,
+                        persisted_props=["columnState"],
                     ),
                 ],
             ),
+            dcc.Interval(id="interval", disabled=True),
         ],
         fluid=True,
     ),
 )
+
+@callback(
+    Output("interval", "disabled"),
+    Output("interval", "n_intervals"),
+    Output("interval", "interval"),
+    Input("auto-update-time", "value"),
+)
+def update_autoupdate_time(autoupdate_time):
+    if autoupdate_time:
+        interval = autoupdate_time * 60 * 1000
+        return False, 0, interval
+    return dash.no_update, dash.no_update, dash.no_update
+
 
 
 @callback(
     Output("weather-grid", "rowData"),
     Output("status-message", "children"),
     Input("fetch-button", "n_clicks"),
+    Input("interval", "n_intervals"),
     State("airport-input", "value"),
 )
-def fetch_weather_data(_, airport_codes):
+def fetch_weather_data(_, __, airport_codes):
     if not airport_codes:
         return [], dmc.Alert(
             "Please enter at least one airport code or state", color="yellow"
@@ -188,7 +219,6 @@ def modal_search(_, opened):
 def get_search_results(value):
     if value:
         wx_data, msg = fetch_data(value)
-        print(wx_data)
         return dmc.Box([dmc.Textarea(wx_data[0].get('rawOb', ""), autosize=True, mb="md"), msg])
     return []
 
@@ -201,8 +231,6 @@ def get_search_results(value):
 def fetch_from_favorites(n, values):
     if ctx.triggered_id:
         index = ctx.triggered_id["index"]
-        print(index)
-        print(values)
         if values:
             return values[index]
     return dash.no_update
