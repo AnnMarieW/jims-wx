@@ -118,6 +118,7 @@ app.layout = dmc.MantineProvider(
                                 "width": 120,
                                 "sort": "asc",
                             },
+                            {"field": "fltCat", "headerName": "VFR", "width": 75, "cellRenderer": "ColorCellRenderer"},
                             {"field": "name", "headerName": "Name", "width": 200},
                             {
                                 "field": "rawOb",
@@ -145,6 +146,8 @@ app.layout = dmc.MantineProvider(
                             },
                             {"field": "visib", "headerName": "Vis", "width": 80},
                             {"field": "clouds", "headerName": "Clouds", "width": 200},
+
+
                         ],
                         defaultColDef={"filter": True},
                         rowData=[],

@@ -19,6 +19,8 @@ def get_state_airports():
 
     stations = [station for station in stations if station.get("country") == "US" and station.get("icaoId") and station.get("siteType") != []]
 
+    stations_icaoId = [s["icaoId"] for s in stations]
+
     st_airports = defaultdict(list)
 
     for station in stations:
@@ -28,9 +30,14 @@ def get_state_airports():
         if state and icao:
             st_airports[state].append(icao)
 
-    return  dict(st_airports), stations
+    return  dict(st_airports), stations, stations_icaoId
 
-state_airports, us_stations_data = get_state_airports()
+state_airports, us_stations_data, stations_id = get_state_airports()
+
+
+def validate_stations(codes):
+    invalid_codes = [c for c in codes if c not in stations_id ]
+    return  tuple(set(invalid_codes))
 
 
 def process_data(data):
@@ -85,6 +92,7 @@ def process_data(data):
                 "clouds": clouds_str,
                 "rawOb": raw_wx,
                 "rawTaf": item.get("rawTaf", ""),
+                "fltCat": item.get("fltCat", ""),
             }
         )
     return processed_data
@@ -113,7 +121,16 @@ def fetch_data(airport_codes):
         if len(c) == 4:
             codes_fixed.append(c)
 
-    # TODO verify codes are valid
+    invalid_codes = validate_stations(codes_fixed)
+    if invalid_codes:
+        return (
+            [],
+            dmc.Alert(
+                f"Invalid code: {invalid_codes}", color="yellow"
+            )
+        )
+
+
 
     ids_param = ",".join(codes_fixed)
 
@@ -136,7 +153,6 @@ def fetch_data(airport_codes):
 
         response.raise_for_status()
         data = response.json()
-        #   data = response.text
         if not data:
             return [], dmc.Alert("No weather data found", color="yellow")
 
