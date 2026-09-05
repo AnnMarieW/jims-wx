@@ -59,16 +59,15 @@ app.layout = dmc.MantineProvider(
             ),
             dmc.Group(
                 [
-                    dmc.Textarea(
+                    dmc.TextInput(
                         id="airport-input",
                         label="Airport or State Code(s)",
                         placeholder="e.g., wa avq KTUS",
-
+                        debounce=True,
                         style={"flex": 1},
-                        autosize=True,
+                     #   autosize=True,
                         persistence=True,
                     ),
-                    dmc.Button("Fetch WX", id="fetch-button", mt=25, size="sm"),
                     dmc.Button("Favorites", id="btn-modal-favorites", size="sm", mt=25),
                     dmc.Button("Search", id="btn-search", size="sm", mt=25),
                 ],
@@ -180,11 +179,10 @@ def update_autoupdate_time(autoupdate_time):
 @callback(
     Output("weather-grid", "rowData"),
     Output("status-message", "children"),
-    Input("fetch-button", "n_clicks"),
     Input("interval", "n_intervals"),
-    State("airport-input", "value"),
+    Input("airport-input", "value"),
 )
-def fetch_weather_data(_, __, airport_codes):
+def fetch_weather_data(_, airport_codes):
     if not airport_codes:
         return [], dmc.Alert(
             "Please enter at least one airport code or state", color="yellow"

@@ -118,7 +118,7 @@ def fetch_data(airport_codes):
         if len(c) == 3:
             c = "K" + c
             codes_fixed.append(c)
-        if len(c) == 4:
+        if len(c) >= 4:
             codes_fixed.append(c)
 
     invalid_codes = validate_stations(codes_fixed)
@@ -126,7 +126,7 @@ def fetch_data(airport_codes):
         return (
             [],
             dmc.Alert(
-                f"Invalid code: {invalid_codes}", color="yellow"
+                f"Invalid weather station: {invalid_codes}", color="yellow"
             )
         )
 
