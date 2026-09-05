@@ -4,10 +4,10 @@ var dagcomponentfuncs = (window.dashAgGridComponentFunctions =
 dagcomponentfuncs.ColorCellRenderer = (props) => {
 
     const colors = {
-        VFR: "green",
-        MVFR: "blue",
-        IFR: "red",
-        LIFR: "magenta",
+        VFR: '#0CC502',
+        MVFR: '#226ED8',
+        IFR: '#FF2700',
+        LIFR: '#FF40FF',
     };
 
     const value = props.value?.toUpperCase();
@@ -23,8 +23,8 @@ dagcomponentfuncs.ColorCellRenderer = (props) => {
         borderRadius: "50%",
         margin: 3,
         display: "inline-block",
-        width: 12,
-        height: 12,
+        width: 18,
+        height: 18,
         backgroundColor: color,
     };
 
