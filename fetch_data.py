@@ -37,7 +37,7 @@ state_airports, us_stations_data, stations_id = get_state_airports()
 
 def validate_stations(codes):
     invalid_codes = [c for c in codes if c not in stations_id ]
-    return  tuple(set(invalid_codes))
+    return  ", ".join(dict.fromkeys(invalid_codes))
 
 
 def process_data(data):
