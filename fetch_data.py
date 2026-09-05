@@ -35,9 +35,10 @@ def get_state_airports():
 state_airports, us_stations_data, stations_id = get_state_airports()
 
 
+
 def validate_stations(codes):
     invalid_codes = [c for c in codes if c not in stations_id ]
-    return  ", ".join(dict.fromkeys(invalid_codes))
+    return  invalid_codes
 
 
 def process_data(data):
@@ -113,8 +114,8 @@ def fetch_data(airport_codes):
     codes_fixed = []
     for c in codes:
         if len(c) == 2:
-            c = state_airports.get(c,"")
-            codes_fixed.extend(c)
+            s = state_airports.get(c,"")
+            codes_fixed.extend(s)
         if len(c) == 3:
             c = "K" + c
             codes_fixed.append(c)
