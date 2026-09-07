@@ -1,6 +1,6 @@
 import dash_mantine_components as dmc
 import requests
-from datetime import datetime
+from datetime import datetime, timezone
 import re, json, gzip
 from collections import defaultdict
 
@@ -160,7 +160,7 @@ def fetch_data(airport_codes):
         row_data = process_data(data)
 
         success_msg = dmc.Alert(
-            f"Successfully fetched WX for {len(row_data)} station(s). Last updated: {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+             f"WX for {len(row_data)} station(s). Last updated: {datetime.now():%Y-%m-%d %H:%M} local / {datetime.now(timezone.utc):%d%H%MZ}",
             color="green",
         )
 
