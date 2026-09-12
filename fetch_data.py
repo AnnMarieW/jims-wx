@@ -94,6 +94,8 @@ def process_data(data):
                 "rawOb": raw_wx,
                 "rawTaf": item.get("rawTaf", ""),
                 "fltCat": item.get("fltCat", ""),
+                "lat": item.get("lat", ""),
+                "lon": item.get("lon", ""),
             }
         )
     return processed_data
