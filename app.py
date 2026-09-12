@@ -146,7 +146,7 @@ app.layout = dmc.MantineProvider(
                             {"field": "visib", "headerName": "Vis", "width": 80},
                             {"field": "clouds", "headerName": "Clouds", "width": 200},
                             {"field": "lat", "headerName": "Lat", "width": 95},
-                            {"field": "lon", "headerName": "lon", "width": 95},
+                            {"field": "lon", "headerName": "Lon", "width": 95},
 
 
 

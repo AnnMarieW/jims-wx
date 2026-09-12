@@ -46,6 +46,7 @@ def process_data(data):
     # Process the fetched weather data
     processed_data = []
 
+
     for item in data:
         # convert cloud object to string
         clouds = item.get("clouds", [])
